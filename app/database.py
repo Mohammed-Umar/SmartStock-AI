@@ -1,14 +1,31 @@
 import sqlite3
 import os
+import shutil
 from contextlib import contextmanager
 from typing import Generator
 
-DB_PATH = os.environ.get("SMARTSTOCK_DB_PATH", "smartstock.db")
+
+def get_db_path() -> str:
+    """Returns the database file path, ensuring writable /tmp location on serverless environments like Vercel."""
+    explicit = os.environ.get("SMARTSTOCK_DB_PATH")
+    if explicit:
+        return explicit
+    if os.environ.get("VERCEL"):
+        tmp_db = "/tmp/smartstock.db"
+        if not os.path.exists(tmp_db):
+            base_db = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "smartstock.db")
+            if os.path.exists(base_db):
+                try:
+                    shutil.copy(base_db, tmp_db)
+                except Exception:
+                    pass
+        return tmp_db
+    return "smartstock.db"
 
 
 def get_db():
     """Returns a new sqlite3 connection with Row factory enabled."""
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON;")
     return conn
