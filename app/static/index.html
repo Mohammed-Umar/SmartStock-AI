@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartStock AI - Intelligent Household Consumption & Waste Prevention</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">
+            SmartStock <span class="ai-badge">AI</span>
+          </div>
+          <div class="brand-sub">Intelligent Household Consumption & Waste Prevention System</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-reset-demo" title="Reset to sample household data">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          Reset Demo Data
+        </button>
+        <button class="btn btn-primary btn-sm" id="btn-open-add-item">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add Item
+        </button>
+        <button class="btn btn-accent btn-sm" id="btn-open-log-consumption">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+          Log Consumption
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="main-nav">
+      <div class="nav-container">
+        <button class="nav-tab active" data-view="dashboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Dashboard Overview
+        </button>
+        <button class="nav-tab" data-view="inventory">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+          Inventory (<span id="nav-item-count">0</span>)
+        </button>
+        <button class="nav-tab" data-view="predictions">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14h-2v-2h2zm0-4h-2V7h2z"/>
+          </svg>
+          AI Refills & Forecasts
+        </button>
+        <button class="nav-tab" data-view="anomalies">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          Anomalies & Alerts
+          <span class="badge badge-danger" id="nav-anomaly-badge">0</span>
+        </button>
+        <button class="nav-tab" data-view="shopping">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          Smart Shopping List
+          <span class="badge badge-primary" id="nav-shopping-badge">0</span>
+        </button>
+        <button class="nav-tab" data-view="budget">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+          Budget & Waste Prevention
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="main-content">
+
+    <!-- VIEW 1: DASHBOARD OVERVIEW -->
+    <section id="view-dashboard" class="content-view active">
+      <!-- KPI Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper icon-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Total Items Monitored</span>
+            <div class="stat-number" id="dash-total-items">0</div>
+            <span class="stat-meta text-muted">Across 6 household categories</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper icon-red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Low-Stock & Critical</span>
+            <div class="stat-number text-danger" id="dash-low-stock">0</div>
+            <span class="stat-meta text-danger" id="dash-low-stock-sub">Immediate attention recommended</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper icon-amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Predicted Refills (< 5 Days)</span>
+            <div class="stat-number text-amber" id="dash-predicted-refills">0</div>
+            <span class="stat-meta text-muted">Based on Scikit-Learn Ridge model</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper icon-green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Monthly Spending</span>
+            <div class="stat-number text-success" id="dash-monthly-spend">$0.00</div>
+            <span class="stat-meta text-success">Saved est. <span id="dash-waste-saved">$0.00</span> via waste prevention</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Urgent Alerts Banner -->
+      <div class="alert-banner" id="dash-urgent-banner">
+        <div class="alert-banner-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="alert-banner-content">
+          <strong id="urgent-banner-title">Critical Refill Alerts</strong>
+          <span id="urgent-banner-text">Loading predictive stock assessment...</span>
+        </div>
+        <button class="btn btn-sm btn-light" id="btn-banner-action" onclick="switchView('shopping')">
+          Review Smart Cart
+        </button>
+      </div>
+
+      <!-- Charts & Fast Actions Split -->
+      <div class="dashboard-grid-split">
+        <!-- Stock Health Chart -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Stock Health & Depletion Urgency</h3>
+              <p class="card-subtitle">AI categorization of inventory replenishment urgency</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height: 260px;">
+              <canvas id="chart-stock-health"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly Expense Chart -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Spending by Category</h3>
+              <p class="card-subtitle">Historical household purchase allocation</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height: 260px;">
+              <canvas id="chart-category-spending"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Consume & Recent Logs Section -->
+      <div class="dashboard-lower-grid">
+        <!-- Quick Log Favorites -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Quick Consumption Bar</h3>
+              <p class="card-subtitle">One-click usage recording for frequent daily staples</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="quick-consume-grid" id="quick-consume-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Logs Feed -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Recent Household Activity</h3>
+              <p class="card-subtitle">Latest recorded usage and restock events</p>
+            </div>
+            <button class="btn btn-secondary btn-xs" onclick="switchView('inventory')">View All</button>
+          </div>
+          <div class="card-body">
+            <div class="activity-feed" id="dashboard-activity-feed">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 2: INVENTORY MANAGEMENT -->
+    <section id="view-inventory" class="content-view">
+      <div class="view-header">
+        <div>
+          <h2>Household Inventory</h2>
+          <p class="text-muted">Track items, real-time stock levels, unit costs, and expiry dates</p>
+        </div>
+        <div class="view-header-actions">
+          <button class="btn btn-primary" onclick="openAddItemModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add New Item
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Controls Bar -->
+      <div class="filter-bar card">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="inv-search-input" placeholder="Search by item name..." oninput="debounceFilterItems()">
+        </div>
+
+        <div class="filter-group">
+          <label for="inv-cat-filter">Category:</label>
+          <select id="inv-cat-filter" onchange="filterItems()">
+            <option value="All">All Categories</option>
+            <option value="Dairy & Eggs">Dairy & Eggs</option>
+            <option value="Pantry & Grains">Pantry & Grains</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Fresh Produce">Fresh Produce</option>
+            <option value="Cleaning & Household">Cleaning & Household</option>
+            <option value="Bakery & Fresh">Bakery & Fresh</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="inv-status-filter">Status:</label>
+          <select id="inv-status-filter" onchange="filterItems()">
+            <option value="ALL">All Statuses</option>
+            <option value="CRITICAL">Critical (<2 days)</option>
+            <option value="LOW">Low Stock</option>
+            <option value="EXPIRING">Expiring Soon</option>
+            <option value="GOOD">Adequate Stock</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Items Grid/Table -->
+      <div class="card inventory-table-card">
+        <div class="table-responsive">
+          <table class="data-table" id="inventory-table">
+            <thead>
+              <tr>
+                <th>Item & Category</th>
+                <th>Current Stock</th>
+                <th>Stock Level</th>
+                <th>Burn Rate & Refill</th>
+                <th>Price / Unit</th>
+                <th>Expiry Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: AI REFILLS & PREDICTIONS -->
+    <section id="view-predictions" class="content-view">
+      <div class="view-header">
+        <div>
+          <h2>AI Consumption Forecasts & Refill Predictions</h2>
+          <p class="text-muted">Predictive machine learning models estimating exact household depletion dates</p>
+        </div>
+      </div>
+
+      <!-- ML Architecture Info Callout -->
+      <div class="ml-info-banner">
+        <div class="ml-info-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"],
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="ml-info-body">
+          <div class="ml-info-title">Explainable Machine Learning Architecture</div>
+          <p>
+            SmartStock AI employs <strong>Scikit-learn Ridge Regression</strong> with day-of-week seasonality, rolling 3-day averages, and time-decay weighting for items with &ge; 7 days of consumption history. Items with fewer logs utilize a <strong>Weighted Exponential Moving Average (EMA, &alpha;=0.35)</strong> or rule-based category heuristics as an intelligent fallback.
+          </p>
+        </div>
+      </div>
+
+      <!-- Predictions Cards Grid -->
+      <div class="predictions-grid" id="predictions-cards-container">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: ANOMALIES & ALERTS -->
+    <section id="view-anomalies" class="content-view">
+      <div class="view-header">
+        <div>
+          <h2>Consumption Anomalies & Waste Alerts</h2>
+          <p class="text-muted">Isolation Forest & statistical outlier detection to uncover spillage, abnormal spikes, and imminent food spoilage</p>
+        </div>
+        <div class="view-header-actions">
+          <button class="btn btn-secondary" id="btn-run-anomaly-scan" onclick="triggerAnomalyScan()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Run Full Scan
+          </button>
+        </div>
+      </div>
+
+      <!-- Anomaly Filter Pills -->
+      <div class="pill-tabs" id="anomaly-filter-pills">
+        <button class="pill-tab active" data-status="UNRESOLVED" onclick="filterAnomalies('UNRESOLVED')">Unresolved Alerts</button>
+        <button class="pill-tab" data-status="ALL" onclick="filterAnomalies('ALL')">All History</button>
+        <button class="pill-tab" data-status="ACKNOWLEDGED" onclick="filterAnomalies('ACKNOWLEDGED')">Acknowledged</button>
+      </div>
+
+      <!-- Anomalies List -->
+      <div class="anomalies-list" id="anomalies-container">
+        <!-- Dynamically populated -->
+      </div>
+    </section>
+
+    <!-- VIEW 5: SMART SHOPPING LIST -->
+    <section id="view-shopping" class="content-view">
+      <div class="view-header">
+        <div>
+          <h2>Smart Shopping List & Waste Prevention</h2>
+          <p class="text-muted">Predictive purchase recommendations with built-in duplicate prevention and optimal quantity sizing</p>
+        </div>
+        <div class="view-header-actions">
+          <button class="btn btn-secondary" id="btn-open-manual-shopping" onclick="openAddShoppingModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add Custom Item
+          </button>
+          <button class="btn btn-primary" id="btn-auto-recommend" onclick="generateShoppingRecommendations()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            Auto-Generate AI Recommendations
+          </button>
+        </div>
+      </div>
+
+      <!-- Summary KPI & Duplicate Prevention Guard Info -->
+      <div class="shopping-stats-card card">
+        <div class="shopping-stat-col">
+          <span class="text-muted text-sm">Active Shopping Items</span>
+          <div class="stat-number" id="shopping-item-count">0</div>
+        </div>
+        <div class="shopping-stat-col">
+          <span class="text-muted text-sm">Estimated Total Basket Cost</span>
+          <div class="stat-number text-success" id="shopping-total-cost">$0.00</div>
+        </div>
+        <div class="shopping-stat-col">
+          <span class="text-muted text-sm">Duplicate Buying Guard</span>
+          <div class="badge badge-success" style="font-size: 0.85rem; padding: 6px 12px;">Active & Protected</div>
+        </div>
+      </div>
+
+      <!-- Shopping List Table -->
+      <div class="card">
+        <div class="table-responsive">
+          <table class="data-table" id="shopping-table">
+            <thead>
+              <tr>
+                <th>Priority</th>
+                <th>Item & Category</th>
+                <th>Quantity Needed</th>
+                <th>Est. Cost</th>
+                <th>AI Reason / Depletion Trigger</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="shopping-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: BUDGET & WASTE ANALYTICS -->
+    <section id="view-budget" class="content-view">
+      <div class="view-header">
+        <div>
+          <h2>Household Budget & Food Waste Analytics</h2>
+          <p class="text-muted">Track monthly grocery expenses and measure the economic impact of waste prevention</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrapper icon-green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Total Month-to-Date Spend</span>
+            <div class="stat-number text-success" id="budget-mtd-spend">$0.00</div>
+            <span class="stat-meta text-muted">Across all household staples</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper icon-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Estimated Waste Prevented</span>
+            <div class="stat-number text-primary" id="budget-waste-prevented">$0.00</div>
+            <span class="stat-meta text-success" id="budget-waste-units">~0.0 units preserved</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon-wrapper icon-amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div class="stat-details">
+            <span class="stat-label">Smart AI Restock Orders</span>
+            <div class="stat-number" id="budget-smart-orders">0</div>
+            <span class="stat-meta text-muted">Just-In-Time replenishment orders</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid-split">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Monthly Expenditure Trend</h3>
+              <p class="card-subtitle">Spending patterns over consecutive months</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height: 280px;">
+              <canvas id="chart-monthly-trend"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Category Spending Distribution</h3>
+              <p class="card-subtitle">Percentage breakdown of household pantry costs</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-container" style="height: 280px;">
+              <canvas id="chart-budget-category"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal 1: Add/Edit Item Modal -->
+  <div class="modal-overlay" id="modal-item">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-item-title">Add Inventory Item</h3>
+        <button class="modal-close" onclick="closeModal('modal-item')">&times;</button>
+      </div>
+      <form id="form-item" onsubmit="handleItemFormSubmit(event)">
+        <input type="hidden" id="item-form-id">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="item-name">Item Name <span class="required">*</span></label>
+              <input type="text" id="item-name" required placeholder="e.g. Fresh Whole Milk">
+            </div>
+
+            <div class="form-group">
+              <label for="item-category">Category <span class="required">*</span></label>
+              <select id="item-category" required>
+                <option value="Dairy & Eggs">Dairy & Eggs</option>
+                <option value="Pantry & Grains">Pantry & Grains</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Fresh Produce">Fresh Produce</option>
+                <option value="Cleaning & Household">Cleaning & Household</option>
+                <option value="Bakery & Fresh">Bakery & Fresh</option>
+                <option value="Personal Care">Personal Care</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="item-unit">Measurement Unit <span class="required">*</span></label>
+              <input type="text" id="item-unit" required placeholder="e.g. L, kg, units, pods">
+            </div>
+
+            <div class="form-group">
+              <label for="item-current-qty">Current Quantity <span class="required">*</span></label>
+              <input type="number" step="0.01" min="0" id="item-current-qty" required placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+              <label for="item-min-threshold">Min Safety Threshold <span class="required">*</span></label>
+              <input type="number" step="0.01" min="0" id="item-min-threshold" required placeholder="Alert below this level">
+            </div>
+
+            <div class="form-group">
+              <label for="item-optimal-qty">Optimal Restock Quantity <span class="required">*</span></label>
+              <input type="number" step="0.01" min="0.01" id="item-optimal-qty" required placeholder="Target full stock">
+            </div>
+
+            <div class="form-group">
+              <label for="item-cost">Cost per Unit ($) <span class="required">*</span></label>
+              <input type="number" step="0.01" min="0" id="item-cost" required placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+              <label for="item-purchase-date">Purchase Date <span class="required">*</span></label>
+              <input type="date" id="item-purchase-date" required>
+            </div>
+
+            <div class="form-group">
+              <label for="item-expiry-date">Expiry Date (Optional)</label>
+              <input type="date" id="item-expiry-date">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="item-notes">Notes / Brand Specifications</label>
+              <textarea id="item-notes" rows="2" placeholder="e.g. Organic, stored in bottom pantry shelf"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-item')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-item">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Log Consumption Modal -->
+  <div class="modal-overlay" id="modal-consumption">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Log Household Consumption</h3>
+        <button class="modal-close" onclick="closeModal('modal-consumption')">&times;</button>
+      </div>
+      <form id="form-consumption" onsubmit="handleConsumptionSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="consume-item-id">Select Item <span class="required">*</span></label>
+              <select id="consume-item-id" required onchange="handleConsumeItemSelect()">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="consume-qty">Quantity Consumed <span class="required">*</span></label>
+              <div class="input-with-addon">
+                <input type="number" step="0.01" min="0.01" id="consume-qty" required placeholder="0.0">
+                <span class="addon" id="consume-unit-addon">units</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="consume-date">Date of Consumption</label>
+              <input type="date" id="consume-date">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="consume-reason">Reason / Usage Type</label>
+              <select id="consume-reason">
+                <option value="Normal Daily Usage">Normal Daily Usage</option>
+                <option value="Batch Cooking / Meal Prep">Batch Cooking / Meal Prep</option>
+                <option value="Weekend Guests / Party">Weekend Guests / Party</option>
+                <option value="Accidental Spillage">Accidental Spillage</option>
+                <option value="Expired / Spoiled Discard">Expired / Spoiled Discard</option>
+                <option value="Routine Restock Prep">Routine Restock Prep</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="consume-is-waste">
+                <span>Flag as Waste/Spoilage (triggers waste prevention alert)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-consumption')">Cancel</button>
+          <button type="submit" class="btn btn-accent">Record Usage</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Manual Add Shopping Item Modal -->
+  <div class="modal-overlay" id="modal-shopping">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Add to Shopping List</h3>
+        <button class="modal-close" onclick="closeModal('modal-shopping')">&times;</button>
+      </div>
+      <form id="form-shopping" onsubmit="handleShoppingSubmit(event)">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="shop-item-name">Item Name <span class="required">*</span></label>
+              <input type="text" id="shop-item-name" required placeholder="e.g. Olive Oil or Fresh Spinach">
+            </div>
+
+            <div class="form-group">
+              <label for="shop-category">Category <span class="required">*</span></label>
+              <select id="shop-category" required>
+                <option value="Dairy & Eggs">Dairy & Eggs</option>
+                <option value="Pantry & Grains">Pantry & Grains</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Fresh Produce">Fresh Produce</option>
+                <option value="Cleaning & Household">Cleaning & Household</option>
+                <option value="Bakery & Fresh">Bakery & Fresh</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="shop-unit">Unit <span class="required">*</span></label>
+              <input type="text" id="shop-unit" required placeholder="e.g. L, kg, packs">
+            </div>
+
+            <div class="form-group">
+              <label for="shop-qty">Quantity Needed <span class="required">*</span></label>
+              <input type="number" step="0.1" min="0.1" id="shop-qty" required placeholder="1.0">
+            </div>
+
+            <div class="form-group">
+              <label for="shop-cost">Estimated Cost ($) <span class="required">*</span></label>
+              <input type="number" step="0.01" min="0" id="shop-cost" required placeholder="0.00">
+            </div>
+
+            <div class="form-group">
+              <label for="shop-urgency">Urgency Priority</label>
+              <select id="shop-urgency">
+                <option value="RECOMMENDED">RECOMMENDED</option>
+                <option value="URGENT">URGENT</option>
+                <option value="PLANNED">PLANNED</option>
+              </select>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="shop-reason">Purchase Reason / Note</label>
+              <input type="text" id="shop-reason" placeholder="e.g. Low buffer before weekend" value="Manual Household Request">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-shopping')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add to Shopping List</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- JavaScript -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
