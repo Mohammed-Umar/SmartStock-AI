@@ -115,7 +115,7 @@
     <section id="view-dashboard" class="content-view active">
       <!-- KPI Stats Grid -->
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card clickable-stat" onclick="switchView('inventory')" title="Click to view all monitored items">
           <div class="stat-icon-wrapper icon-blue">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -123,13 +123,13 @@
             </svg>
           </div>
           <div class="stat-details">
-            <span class="stat-label">Total Items Monitored</span>
+            <span class="stat-label">Total Items Monitored &rarr;</span>
             <div class="stat-number" id="dash-total-items">0</div>
             <span class="stat-meta text-muted">Across 6 household categories</span>
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat" onclick="switchView('inventory')" title="Click to view critical stock items">
           <div class="stat-icon-wrapper icon-red">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -138,13 +138,13 @@
             </svg>
           </div>
           <div class="stat-details">
-            <span class="stat-label">Low-Stock & Critical</span>
+            <span class="stat-label">Low-Stock & Critical &rarr;</span>
             <div class="stat-number text-danger" id="dash-low-stock">0</div>
             <span class="stat-meta text-danger" id="dash-low-stock-sub">Immediate attention recommended</span>
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat" onclick="switchView('predictions')" title="Click to inspect AI consumption forecasts">
           <div class="stat-icon-wrapper icon-amber">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"></circle>
@@ -152,20 +152,20 @@
             </svg>
           </div>
           <div class="stat-details">
-            <span class="stat-label">Predicted Refills (< 5 Days)</span>
+            <span class="stat-label">Predicted Refills (&lt; 5 Days) &rarr;</span>
             <div class="stat-number text-amber" id="dash-predicted-refills">0</div>
             <span class="stat-meta text-muted">Based on Scikit-Learn Ridge model</span>
           </div>
         </div>
 
-        <div class="stat-card">
+        <div class="stat-card clickable-stat" onclick="switchView('budget')" title="Click to inspect spending analytics">
           <div class="stat-icon-wrapper icon-green">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
             </svg>
           </div>
           <div class="stat-details">
-            <span class="stat-label">Monthly Spending</span>
+            <span class="stat-label">Monthly Spending &rarr;</span>
             <div class="stat-number text-success" id="dash-monthly-spend">$0.00</div>
             <span class="stat-meta text-success">Saved est. <span id="dash-waste-saved">$0.00</span> via waste prevention</span>
           </div>
@@ -405,6 +405,12 @@
           <p class="text-muted">Predictive purchase recommendations with built-in duplicate prevention and optimal quantity sizing</p>
         </div>
         <div class="view-header-actions">
+          <button class="btn btn-secondary" id="btn-clear-purchased" onclick="clearPurchasedItems()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Clear Purchased
+          </button>
           <button class="btn btn-secondary" id="btn-open-manual-shopping" onclick="openAddShoppingModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"></line>

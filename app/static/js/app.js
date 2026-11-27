@@ -161,8 +161,11 @@ function renderQuickConsumeFavorites() {
         <span class="quick-consume-stock">${item.current_quantity} ${item.unit} in stock</span>
       </div>
       <div class="quick-btn-group">
-        <button class="btn btn-secondary btn-xs" onclick="quickConsume(${item.id}, ${quickAmount})" title="Consume ${quickAmount} ${item.unit}">
-          -${quickAmount} ${item.unit}
+        <button class="btn btn-secondary btn-xs btn-stepper-btn" onclick="quickConsume(${item.id}, ${quickAmount})" title="Consume -${quickAmount} ${item.unit}">
+          -${quickAmount}
+        </button>
+        <button class="btn btn-secondary btn-xs btn-stepper-btn" onclick="quickRestockItem(${item.id}, ${quickAmount})" title="Add +${quickAmount} ${item.unit}">
+          +${quickAmount}
         </button>
         <button class="btn btn-primary btn-xs" onclick="openLogConsumptionModal(${item.id})" title="Custom Usage">
           Custom
@@ -330,15 +333,28 @@ async function loadInventory() {
 
       const daysText = item.days_remaining !== null ? `${item.days_remaining}d left` : 'Analyzing';
 
+      let quickAmount = 1;
+      if (item.unit === 'L' || item.unit === 'kg') quickAmount = 0.25;
+      else if (item.unit === 'g') quickAmount = 25;
+      else if (item.unit === 'ml') quickAmount = 50;
+
       tr.innerHTML = `
         <td>
           <div style="font-weight: 700;">${escapeHtml(item.name)}</div>
           <span class="badge badge-muted" style="margin-top: 3px;">${escapeHtml(item.category)}</span>
         </td>
         <td>
-          <span style="font-family: var(--font-mono); font-weight: 700; font-size: 1rem;">${item.current_quantity}</span>
-          <span class="text-muted">${item.unit}</span>
-          <div class="text-muted text-sm">Target: ${item.optimal_quantity} ${item.unit}</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div>
+              <span style="font-family: var(--font-mono); font-weight: 700; font-size: 1rem;">${item.current_quantity}</span>
+              <span class="text-muted">${item.unit}</span>
+              <div class="text-muted text-sm">Target: ${item.optimal_quantity} ${item.unit}</div>
+            </div>
+            <div class="stepper-btn-group">
+              <button class="btn-stepper" onclick="quickConsume(${item.id}, ${quickAmount})" title="Consume -${quickAmount} ${item.unit}">−</button>
+              <button class="btn-stepper" onclick="quickRestockItem(${item.id}, ${quickAmount})" title="Add +${quickAmount} ${item.unit}">+</button>
+            </div>
+          </div>
         </td>
         <td>
           <div class="progress-wrapper">
@@ -884,6 +900,60 @@ async function quickConsume(itemId, qty) {
     }
   } catch (err) {
     showToast('Failed to log consumption', 'danger');
+  }
+}
+
+async function quickRestockItem(itemId, amount) {
+  const item = state.items.find(i => i.id === itemId);
+  if (!item) return;
+
+  const newQty = Math.round((item.current_quantity + amount) * 100) / 100;
+  const payload = {
+    name: item.name,
+    category: item.category,
+    unit: item.unit,
+    current_quantity: newQty,
+    min_threshold: item.min_threshold,
+    optimal_quantity: item.optimal_quantity,
+    cost_per_unit: item.cost_per_unit,
+    purchase_date: item.purchase_date,
+    expiry_date: item.expiry_date || null,
+    notes: item.notes || ''
+  };
+
+  try {
+    const res = await fetch(`/api/items/${itemId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Restock failed');
+    showToast(`Restocked +${amount} ${item.unit} to ${item.name} (${newQty} in stock).`, 'success');
+    await loadInventory();
+    await fetchDashboardStats();
+    if (state.activeView === 'dashboard') {
+      renderQuickConsumeFavorites();
+    }
+  } catch (err) {
+    showToast('Failed to restock item', 'danger');
+  }
+}
+
+async function clearPurchasedItems() {
+  const purchased = state.shoppingList.filter(i => i.is_purchased);
+  if (purchased.length === 0) {
+    showToast('No purchased items to clear.', 'info');
+    return;
+  }
+  if (!confirm(`Clear ${purchased.length} purchased item(s) from history?`)) return;
+
+  try {
+    await Promise.all(purchased.map(item => fetch(`/api/shopping/${item.id}`, { method: 'DELETE' })));
+    showToast(`Cleared ${purchased.length} completed purchases.`, 'success');
+    await loadShoppingList();
+    await fetchDashboardStats();
+  } catch (err) {
+    showToast('Failed to clear items', 'danger');
   }
 }
 

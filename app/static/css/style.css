@@ -248,6 +248,10 @@ body {
   text-decoration: none;
 }
 
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
 .btn-sm {
   padding: 7px 13px;
   font-size: 0.82rem;
@@ -382,6 +386,68 @@ body {
 .stat-card:hover {
   transform: translateY(-2px);
   border-color: #384C72;
+}
+
+.stat-card.clickable-stat {
+  cursor: pointer;
+  position: relative;
+}
+
+.stat-card.clickable-stat:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2);
+}
+
+.stat-card.clickable-stat:hover .stat-label {
+  color: var(--primary);
+}
+
+.stepper-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-stepper {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.btn-stepper:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: scale(1.1);
+}
+
+.btn-stepper:active {
+  transform: scale(0.92);
+}
+
+.btn-stepper-btn {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.btn-stepper-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
 }
 
 .stat-icon-wrapper {
